@@ -1,15 +1,14 @@
 import type { NFLTeam, NFLGame, ESPNScoreboardEvent, ESPNCompetitor } from '@/types'
 
 const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl'
-const CORS_PROXY = '' // Set to '' to use ESPN directly (works from browser)
+const IS_PROD = window.location.hostname !== 'localhost'
 
 function url(path: string) {
-  return `${CORS_PROXY}${ESPN_BASE}${path}`
+  return `${ESPN_BASE}${path}`
 }
 
-// ─── Teams ────────────────────────────────────────────────────────────────────
-
 export async function fetchAllTeams(): Promise<NFLTeam[]> {
+  if (IS_PROD) return FALLBACK_TEAMS
   try {
     const res = await fetch(url('/teams?limit=32'))
     const json = await res.json()
@@ -22,19 +21,21 @@ export async function fetchAllTeams(): Promise<NFLTeam[]> {
   }
 }
 
-export async function fetchTeamSchedule(teamId: string, season = 2025): Promise<NFLGame[]> {
+export async function fetchTeamSchedule(_teamId: string, _season = 2025): Promise<NFLGame[]> {
+  if (IS_PROD) return []
   try {
-    const res = await fetch(url(`/teams/${teamId}/schedule?season=${season}`))
+    const res = await fetch(url(`/teams/${_teamId}/schedule?season=${_season}`))
     const json = await res.json()
     const events = json.events || []
     return events.map((e: ESPNScoreboardEvent) => mapGame(e)).filter(Boolean) as NFLGame[]
   } catch (err) {
-    console.error(`Failed to fetch schedule for team ${teamId}:`, err)
+    console.error(`Failed to fetch schedule for team ${_teamId}:`, err)
     return []
   }
 }
 
 export async function fetchScoreboard(week?: number): Promise<NFLGame[]> {
+  if (IS_PROD) return []
   try {
     const weekParam = week ? `&week=${week}` : ''
     const res = await fetch(url(`/scoreboard?limit=16${weekParam}`))
@@ -52,8 +53,8 @@ export async function fetchCurrentWeekScoreboard(): Promise<NFLGame[]> {
 }
 
 export async function fetchPlayoffBracket(): Promise<NFLGame[]> {
+  if (IS_PROD) return []
   try {
-    // ESPN playoff scoreboard — typically available from Wild Card weekend
     const res = await fetch(url('/scoreboard?seasontype=3'))
     const json = await res.json()
     const events: ESPNScoreboardEvent[] = json.events || []
@@ -62,8 +63,6 @@ export async function fetchPlayoffBracket(): Promise<NFLGame[]> {
     return []
   }
 }
-
-// ─── Live ticker data ─────────────────────────────────────────────────────────
 
 export interface TickerGame {
   id: string
@@ -77,11 +76,11 @@ export interface TickerGame {
 }
 
 export async function fetchTickerGames(): Promise<TickerGame[]> {
+  if (IS_PROD) return []
   try {
     const res = await fetch(url('/scoreboard'))
     const json = await res.json()
     const events: ESPNScoreboardEvent[] = json.events || []
-
     return events.map((e) => {
       const comp = e.competitions[0]
       const home = comp.competitors.find((c) => c.homeAway === 'home')
@@ -101,8 +100,6 @@ export async function fetchTickerGames(): Promise<TickerGame[]> {
     return []
   }
 }
-
-// ─── Mappers ──────────────────────────────────────────────────────────────────
 
 function mapTeam(t: {
   id: string
@@ -134,22 +131,14 @@ function mapGame(e: ESPNScoreboardEvent): NFLGame | null {
     const home = comp.competitors.find((c: ESPNCompetitor) => c.homeAway === 'home')
     const away = comp.competitors.find((c: ESPNCompetitor) => c.homeAway === 'away')
     if (!home || !away) return null
-
     const status = e.status.type.state
     const record = (c: ESPNCompetitor) => c.records?.find((r) => r.type === 'total')?.summary || ''
-
     return {
       id: e.id,
       week: e.week?.number || 0,
       date: comp.date || e.date,
-      homeTeam: {
-        ...mapTeam(home.team),
-        record: record(home),
-      },
-      awayTeam: {
-        ...mapTeam(away.team),
-        record: record(away),
-      },
+      homeTeam: { ...mapTeam(home.team), record: record(home) },
+      awayTeam: { ...mapTeam(away.team), record: record(away) },
       homeScore: home.score ? parseInt(home.score) : undefined,
       awayScore: away.score ? parseInt(away.score) : undefined,
       status,
@@ -161,8 +150,6 @@ function mapGame(e: ESPNScoreboardEvent): NFLGame | null {
     return null
   }
 }
-
-// ─── Fallback data (used when ESPN API is unavailable) ────────────────────────
 
 export const FALLBACK_TEAMS: NFLTeam[] = [
   { id: '1', abbreviation: 'ATL', displayName: 'Atlanta Falcons', shortDisplayName: 'Falcons', location: 'Atlanta', nickname: 'Falcons', color: '#A71930', alternateColor: '#000000', logo: 'https://a.espncdn.com/i/teamlogos/nfl/500/atl.png' },
