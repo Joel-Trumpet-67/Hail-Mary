@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Grid3X3, Trophy, Calendar, Users, Menu, X, Zap, ChevronRight } from 'lucide-react'
+import { Grid3X3, Trophy, Users, Menu, X, Zap, ChevronRight } from 'lucide-react'
 import { useStore } from '@/store/useStore'
 import { LiveTicker } from './LiveTicker'
 import clsx from 'clsx'

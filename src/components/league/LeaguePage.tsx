@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Copy, Check, Share2, LogOut, Users, Crown, Shield } from 'lucide-react'
+import { Copy, Check, Share2, LogOut, Crown, Shield } from 'lucide-react'
 import { useStore } from '@/store/useStore'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'

@@ -9,7 +9,6 @@ const ROUND_NAMES = ['', 'Wild Card', 'Divisional', 'Conf. Championship', 'Super
 export function PlayoffsPage() {
   const { league, player, playoffGames, playoffPicks, setPlayoffPick } = useStore()
 
-  const isPicksPhase = league?.phase === 'playoffs'
   const isFinal = league?.phase === 'final'
   const isLocked = isFinal
 
