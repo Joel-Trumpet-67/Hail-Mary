@@ -4,7 +4,7 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/hail-mary/',   // Must match your GitHub repo name exactly
+  base: '/Hail-Mary/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
