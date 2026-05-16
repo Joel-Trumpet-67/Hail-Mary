@@ -1,4 +1,4 @@
-# 🏈 Hail Mary
+# 🏈 Hail Mary 
 
 Season-long NFL prediction game. Pick W or L for all 32 teams across 17 games, compete on a live leaderboard, then pick the playoffs for a 3× points comeback mechanic.
 
