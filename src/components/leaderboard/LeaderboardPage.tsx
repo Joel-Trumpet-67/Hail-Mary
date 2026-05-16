@@ -5,7 +5,6 @@ import { useStore } from '@/store/useStore'
 import { getAllLeaguePicks, getLeaguePlayers, subscribeToLeague } from '@/lib/supabase'
 import { PlayerRow } from './PlayerRow'
 import type { PlayerScore, Player } from '@/types'
-import clsx from 'clsx'
 
 export function LeaderboardPage() {
   const { league, player, picks, schedule, leaderboard, setLeaderboard } = useStore()
