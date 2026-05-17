@@ -1,7 +1,7 @@
 import type { NFLTeam, NFLGame, ESPNScoreboardEvent, ESPNCompetitor } from '@/types'
 
 const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl'
-const CORS_PROXY = 'https://corsproxy.io/?url='
+const CORS_PROXY = 'https://api.allorigins.win/raw?url='
 const IS_PROD = window.location.hostname !== 'localhost'
 
 function url(path: string) {
