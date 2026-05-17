@@ -43,7 +43,8 @@ export async function createLeague(name: string, createdBy: string) {
 }
 
 export async function getLeagueByCode(inviteCode: string) {
-  const q = query(collection(db, 'leagues'), where('inviteCode', '==', inviteCode.toUpperCase()))
+  const code = inviteCode.toUpperCase().trim()
+  const q = query(collection(db, 'leagues'), where('inviteCode', '==', code))
   const snap = await getDocs(q)
   if (snap.empty) throw new Error('League not found')
   return snap.docs[0].data()
