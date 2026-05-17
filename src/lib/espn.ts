@@ -1,14 +1,15 @@
 import type { NFLTeam, NFLGame, ESPNScoreboardEvent, ESPNCompetitor } from '@/types'
 
 const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl'
+const CORS_PROXY = 'https://corsproxy.io/?url='
 const IS_PROD = window.location.hostname !== 'localhost'
 
 function url(path: string) {
-  return `${ESPN_BASE}${path}`
+  const full = `${ESPN_BASE}${path}`
+  return IS_PROD ? `${CORS_PROXY}${encodeURIComponent(full)}` : full
 }
 
 export async function fetchAllTeams(): Promise<NFLTeam[]> {
-  if (IS_PROD) return FALLBACK_TEAMS
   try {
     const res = await fetch(url('/teams?limit=32'))
     const json = await res.json()
@@ -21,21 +22,19 @@ export async function fetchAllTeams(): Promise<NFLTeam[]> {
   }
 }
 
-export async function fetchTeamSchedule(_teamId: string, _season = 2025): Promise<NFLGame[]> {
-  if (IS_PROD) return []
+export async function fetchTeamSchedule(teamId: string, season = 2026): Promise<NFLGame[]> {
   try {
-    const res = await fetch(url(`/teams/${_teamId}/schedule?season=${_season}`))
+    const res = await fetch(url(`/teams/${teamId}/schedule?season=${season}`))
     const json = await res.json()
     const events = json.events || []
     return events.map((e: ESPNScoreboardEvent) => mapGame(e)).filter(Boolean) as NFLGame[]
   } catch (err) {
-    console.error(`Failed to fetch schedule for team ${_teamId}:`, err)
+    console.error(`Failed to fetch schedule for team ${teamId}:`, err)
     return []
   }
 }
 
 export async function fetchScoreboard(week?: number): Promise<NFLGame[]> {
-  if (IS_PROD) return []
   try {
     const weekParam = week ? `&week=${week}` : ''
     const res = await fetch(url(`/scoreboard?limit=16${weekParam}`))
@@ -53,7 +52,6 @@ export async function fetchCurrentWeekScoreboard(): Promise<NFLGame[]> {
 }
 
 export async function fetchPlayoffBracket(): Promise<NFLGame[]> {
-  if (IS_PROD) return []
   try {
     const res = await fetch(url('/scoreboard?seasontype=3'))
     const json = await res.json()
@@ -76,7 +74,6 @@ export interface TickerGame {
 }
 
 export async function fetchTickerGames(): Promise<TickerGame[]> {
-  if (IS_PROD) return []
   try {
     const res = await fetch(url('/scoreboard'))
     const json = await res.json()
