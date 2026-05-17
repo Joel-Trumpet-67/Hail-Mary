@@ -1,12 +1,11 @@
 import type { NFLTeam, NFLGame, ESPNScoreboardEvent, ESPNCompetitor } from '@/types'
 
 const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl'
-const CORS_PROXY = 'https://api.allorigins.win/raw?url='
+const VERCEL_PROXY = 'https://hail-mary-nine.vercel.app/api/espn?path='
 const IS_PROD = window.location.hostname !== 'localhost'
 
 function url(path: string) {
-  const full = `${ESPN_BASE}${path}`
-  return IS_PROD ? `${CORS_PROXY}${encodeURIComponent(full)}` : full
+  return IS_PROD ? `${VERCEL_PROXY}${encodeURIComponent(path)}` : `${ESPN_BASE}${path}`
 }
 
 export async function fetchAllTeams(): Promise<NFLTeam[]> {
