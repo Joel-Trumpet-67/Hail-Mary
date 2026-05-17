@@ -17,7 +17,7 @@ export function useLeague() {
         inviteCode: dbLeague.inviteCode,
         createdAt: dbLeague.createdAt,
         createdBy: dbLeague.createdBy,
-        phase: dbLeague.phase,
+        phase: dbLeague.phase as 'picks' | 'season' | 'playoffs' | 'final',
       }
       const mappedPlayer: Player = {
         id: dbPlayer.id,
