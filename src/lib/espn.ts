@@ -26,7 +26,7 @@ export async function fetchTeamSchedule(teamId: string, season = 2026): Promise<
     const res = await fetch(url(`/teams/${teamId}/schedule?season=${season}`))
     const json = await res.json()
     const events = json.events || []
-    return events.map((e: ESPNScoreboardEvent) => mapGame(e)).filter(Boolean) as NFLGame[]
+    return events.map((e: Record<string, unknown>) => mapTeamScheduleGame(e, teamId)).filter(Boolean) as NFLGame[]
   } catch (err) {
     console.error(`Failed to fetch schedule for team ${teamId}:`, err)
     return []
@@ -118,6 +118,49 @@ function mapTeam(t: {
     color: `#${t.color || '1a1a1a'}`,
     alternateColor: `#${t.alternateColor || '888888'}`,
     logo: t.logos?.[0]?.href || `https://a.espncdn.com/i/teamlogos/nfl/500/${t.abbreviation.toLowerCase()}.png`,
+  }
+}
+
+function mapTeamScheduleGame(e: Record<string, unknown>, teamId: string): NFLGame | null {
+  try {
+    const comp = (e.competitions as Record<string, unknown>[])[0]
+    const competitors = comp.competitors as Record<string, unknown>[]
+    const home = competitors.find((c) => c.homeAway === 'home')
+    const away = competitors.find((c) => c.homeAway === 'away')
+    if (!home || !away) return null
+
+    const mapSched = (t: Record<string, unknown>): NFLTeam => ({
+      id: t.id as string,
+      abbreviation: t.abbreviation as string,
+      displayName: t.displayName as string,
+      shortDisplayName: t.shortDisplayName as string,
+      location: t.location as string,
+      nickname: t.nickname as string,
+      color: `#${(t.color as string) || '1a1a1a'}`,
+      alternateColor: `#${(t.alternateColor as string) || '888888'}`,
+      logo: ((t.logos as Array<{ href: string; rel: string[] }>)?.[0]?.href) ||
+        `https://a.espncdn.com/i/teamlogos/nfl/500/${(t.abbreviation as string).toLowerCase()}.png`,
+    })
+
+    const status = (e.status as Record<string, unknown>)
+    const statusType = status.type as Record<string, unknown>
+    const week = e.week as Record<string, unknown>
+
+    return {
+      id: e.id as string,
+      week: (week?.number as number) || 0,
+      date: comp.date as string || e.date as string,
+      homeTeam: mapSched(home.team as Record<string, unknown>),
+      awayTeam: mapSched(away.team as Record<string, unknown>),
+      homeScore: undefined,
+      awayScore: undefined,
+      status: statusType.state as 'pre' | 'in' | 'post',
+      statusDetail: statusType.detail as string || statusType.shortDetail as string,
+      venue: (comp.venue as Record<string, unknown>)?.fullName as string,
+      network: ((comp.broadcasts as Record<string, unknown>[])?.[0]?.media as Record<string, unknown>)?.shortName as string,
+    }
+  } catch {
+    return null
   }
 }
 
