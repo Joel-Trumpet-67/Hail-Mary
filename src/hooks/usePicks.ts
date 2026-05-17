@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { useStore } from '@/store/useStore'
-import { savePick } from '@/lib/supabase'
+import { savePick } from '@/lib/firebase'
 
 export function usePicks() {
   const { player, league, picks, setPick } = useStore()
@@ -9,20 +9,15 @@ export function usePicks() {
   const makePick = useCallback(
     async (gameId: string, teamId: string, pick: 'W' | 'L') => {
       const key = `${gameId}_${teamId}`
-
-      // Optimistic update immediately
       setPick(gameId, teamId, pick)
-
-      // Debounce DB write
       if (pendingRef.current.has(key)) return
       pendingRef.current.add(key)
-
       try {
         if (player && league) {
           await savePick(player.id, league.id, gameId, teamId, pick)
         }
       } catch (err) {
-        console.warn('Pick save failed (local only):', err)
+        console.warn('Pick save failed:', err)
       } finally {
         pendingRef.current.delete(key)
       }
